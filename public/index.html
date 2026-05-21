@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Employees Union Election 2025</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-inner">
+      <h1>Employees Union Election 2026</h1>
+      <p class="header-sub">INS Global — Online Voting System</p>
+    </div>
+  </header>
+
+  <main>
+    <!-- LEFT: VOTING AREA -->
+    <section id="voting-section">
+
+      <!-- Identity selection -->
+      <div id="identity-panel" class="card">
+        <h2>Who are you?</h2>
+        <p class="hint">Select your name to participate in the vote.</p>
+        <select id="voter-select">
+          <option value="">— Select your name —</option>
+        </select>
+        <button id="confirm-identity-btn" class="btn btn-primary" disabled>Confirm Identity</button>
+        <p id="identity-confirmed" class="confirmed-msg hidden"></p>
+      </div>
+
+      <!-- Current position banner -->
+      <div id="position-banner" class="card banner">
+        <div id="position-progress"></div>
+        <h2 id="position-title">Waiting to start…</h2>
+        <p id="vote-counter" class="vote-counter"></p>
+      </div>
+
+      <!-- Voting status message -->
+      <div id="status-message" class="status-msg hidden"></div>
+
+      <!-- Candidate grid -->
+      <div id="candidate-section" class="card hidden">
+        <h3>Cast Your Vote</h3>
+        <p class="hint">Select the candidate you want to elect for this position.</p>
+        <div id="candidate-grid" class="candidate-grid"></div>
+      </div>
+
+      <!-- Winner announcement -->
+      <div id="winner-banner" class="card winner-card hidden">
+        <div class="winner-crown">&#127942;</div>
+        <h2 id="winner-position"></h2>
+        <p id="winner-name"></p>
+      </div>
+
+      <!-- Election complete -->
+      <div id="complete-banner" class="card complete-card hidden">
+        <div class="trophy">&#127942;</div>
+        <h2>Election Complete!</h2>
+        <p>All positions have been filled. See the full results on the right.</p>
+      </div>
+
+    </section>
+
+    <!-- RIGHT: RESULTS -->
+    <aside id="sidebar">
+
+      <!-- Results -->
+      <div class="card" id="results-card">
+        <h3>Election Results</h3>
+        <div id="results-list">
+          <p class="hint">Results will appear here as positions are filled.</p>
+        </div>
+      </div>
+
+    </aside>
+  </main>
+
+  <footer>
+    <p>Powered by INS Global &mdash; Employees Union Election System</p>
+  </footer>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="client.js"></script>
+</body>
+</html>

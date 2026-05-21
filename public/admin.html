@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel — Employees Union Election 2026</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+
+  <header class="admin-header">
+    <div class="header-inner">
+      <h1>Admin Panel</h1>
+      <p class="header-sub">Employees Union Election 2026 — INS Global</p>
+    </div>
+  </header>
+
+  <!-- Login gate (shown until authenticated) -->
+  <div id="login-gate">
+    <div class="card login-card">
+      <h2>Admin Login</h2>
+      <p class="hint">Enter the admin password to access the control panel.</p>
+      <input type="password" id="admin-password" placeholder="Admin password" autocomplete="current-password" />
+      <button id="admin-login-btn" class="btn btn-primary">Unlock</button>
+      <p id="admin-login-error" class="error-msg hidden">Incorrect password. Try again.</p>
+    </div>
+  </div>
+
+  <!-- Dashboard (hidden until authenticated) -->
+  <main id="dashboard" class="hidden">
+
+    <!-- Position status bar -->
+    <div class="card banner" id="position-banner">
+      <div id="position-progress"></div>
+      <h2 id="position-title">—</h2>
+      <p id="vote-counter" class="vote-counter"></p>
+    </div>
+
+    <div id="status-message" class="status-msg hidden"></div>
+
+    <div id="dashboard-grid">
+
+      <!-- Left: controls -->
+      <section id="controls-section">
+        <div class="card">
+          <h3>Voting Controls</h3>
+          <div class="admin-btn-group">
+            <button id="btn-open-voting" class="btn btn-success">Open Voting</button>
+            <button id="btn-close-voting" class="btn btn-danger" disabled>Close &amp; Tally</button>
+            <button id="btn-reopen-voting" class="btn btn-warning hidden">Re-open Voting</button>
+          </div>
+
+          <div id="live-tally" class="hidden">
+            <h4>Live Tally</h4>
+            <table id="tally-table">
+              <thead><tr><th>Candidate</th><th>Votes</th></tr></thead>
+              <tbody id="tally-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card danger-zone">
+          <h3>Danger Zone</h3>
+          <p class="hint">Resets the entire election back to the beginning. This cannot be undone.</p>
+          <button id="btn-reset" class="btn btn-outline-danger">Reset Election</button>
+        </div>
+      </section>
+
+      <!-- Right: results -->
+      <section id="results-section">
+        <div class="card" id="results-card">
+          <h3>Election Results</h3>
+          <div id="results-list">
+            <p class="hint">Results will appear here as positions are filled.</p>
+          </div>
+        </div>
+
+        <div id="complete-banner" class="card complete-card hidden">
+          <div class="trophy">&#127942;</div>
+          <h2>Election Complete!</h2>
+          <p>All positions have been filled.</p>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer>
+    <p>Powered by INS Global &mdash; Employees Union Election System</p>
+  </footer>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>
