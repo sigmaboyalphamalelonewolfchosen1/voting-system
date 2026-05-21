@@ -209,27 +209,51 @@ function downloadResults() {
     year: 'numeric', month: 'long', day: 'numeric',
     hour: '2-digit', minute: '2-digit', second: '2-digit',
   });
-  const dateSlug = now.toISOString().slice(0, 10);
 
-  const rows = [
-    ['Employees Union Election 2026 - Results'],
-    [`Downloaded: ${timestamp}`],
-    [],
-    ['Position', 'Winner', 'Total Votes'],
-    ...results.map(r => {
-      const total = r.votes ? Object.values(r.votes).reduce((a, b) => a + b, 0) : '';
-      return [r.position, r.winner, total];
-    }),
-  ];
+  const rows = results.map((r, i) => {
+    const total = r.votes ? Object.values(r.votes).reduce((a, b) => a + b, 0) : 0;
+    return `<tr>
+      <td>${i + 1}</td>
+      <td>${r.position}</td>
+      <td>${r.winner}</td>
+      <td>${total}</td>
+    </tr>`;
+  }).join('');
 
-  const csv = rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\r\n');
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `election-results-${dateSlug}.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
+  const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Election Results 2026</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 40px; color: #1e293b; }
+    h1 { font-size: 22px; margin-bottom: 4px; }
+    .meta { font-size: 13px; color: #64748b; margin-bottom: 28px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th { background: #1d4ed8; color: #fff; text-align: left; padding: 10px 14px; }
+    td { padding: 9px 14px; border-bottom: 1px solid #e2e8f0; }
+    tr:last-child td { border-bottom: none; }
+    tr:nth-child(even) td { background: #f8fafc; }
+    @media print { body { padding: 20px; } button { display: none; } }
+  </style>
+</head>
+<body>
+  <h1>Employees Union Election 2026 — Results</h1>
+  <p class="meta">Downloaded: ${timestamp}</p>
+  <table>
+    <thead>
+      <tr><th>#</th><th>Position</th><th>Winner</th><th>Total Votes</th></tr>
+    </thead>
+    <tbody>${rows}</tbody>
+  </table>
+</body>
+</html>`;
+
+  const win = window.open('', '_blank');
+  win.document.write(html);
+  win.document.close();
+  win.focus();
+  setTimeout(() => win.print(), 500);
 }
 
 function showStatus(msg, type = 'info') {
