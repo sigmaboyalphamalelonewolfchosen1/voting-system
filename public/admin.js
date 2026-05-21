@@ -101,7 +101,8 @@ function renderPositionBanner(state) {
     voteCounter.textContent = '';
     return;
   }
-  positionTitle.textContent = state.currentPosition || '—';
+  const suffix = state.isTiebreaker ? ' — Tiebreaker' : '';
+  positionTitle.textContent = (state.currentPosition || '—') + suffix;
   positionProgress.textContent = `Position ${state.currentPositionIndex + 1} of ${state.totalPositions}`;
   voteCounter.textContent = state.votingOpen
     ? `${state.voteCount} / ${state.totalVoters} votes cast`
@@ -123,15 +124,24 @@ function refreshControls(state) {
     btnReopenVoting.classList.add('hidden');
     liveTally.classList.remove('hidden');
     renderTally(state.votes || {}, state.candidates);
-    showStatus(`Voting is open for: ${state.currentPosition}`, 'info');
+    const openMsg = state.isTiebreaker
+      ? `Tiebreaker round open for: ${state.currentPosition}`
+      : `Voting is open for: ${state.currentPosition}`;
+    showStatus(openMsg, 'info');
   } else {
     btnOpenVoting.disabled = false;
     btnCloseVoting.disabled = true;
-    if (state.results && state.results.length > 0) {
-      btnReopenVoting.classList.remove('hidden');
+    if (state.isTiebreaker) {
+      btnReopenVoting.classList.add('hidden');
+      const names = state.tiedCandidates.join(', ');
+      showStatus(`Tie detected between: ${names}. Open voting to start the tiebreaker round.`, 'error');
+    } else {
+      if (state.results && state.results.length > 0) {
+        btnReopenVoting.classList.remove('hidden');
+      }
+      showStatus('Voting is closed. Open voting to begin the next round.', 'warning');
     }
     liveTally.classList.add('hidden');
-    showStatus('Voting is closed. Open voting to begin the next round.', 'warning');
   }
 }
 

@@ -109,10 +109,15 @@ function renderVoterUI(state) {
   if (state.votingOpen && myName) {
     candidateSection.classList.remove('hidden');
     renderCandidates(state, hasVotedThisRound);
-    showStatus('Voting is open! Select your candidate below.', 'info');
+    const openMsg = state.isTiebreaker
+      ? 'Tiebreaker round! Vote again from the candidates below.'
+      : 'Voting is open! Select your candidate below.';
+    showStatus(openMsg, 'info');
   } else if (!state.votingOpen && !state.electionComplete) {
     candidateSection.classList.add('hidden');
-    if (myName) {
+    if (state.isTiebreaker) {
+      showStatus('It\'s a tie! A tiebreaker round will begin shortly.', 'warning');
+    } else if (myName) {
       showStatus('Waiting for the admin to open voting…', 'warning');
     } else {
       hideStatus();

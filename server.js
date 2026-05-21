@@ -47,6 +47,8 @@ function createFreshState() {
     votingOpen: false,
     electionComplete: false,
     lastWinner: null,
+    isTiebreaker: false,
+    tiedCandidates: [],
   };
 }
 
@@ -57,7 +59,7 @@ function getPublicState(isAdmin = false) {
     currentPosition: POSITIONS[state.currentPositionIndex] || null,
     currentPositionIndex: state.currentPositionIndex,
     totalPositions: POSITIONS.length,
-    candidates: state.remainingCandidates,
+    candidates: state.isTiebreaker ? state.tiedCandidates : state.remainingCandidates,
     votingOpen: state.votingOpen,
     voteCount: state.votersWhoVoted.length,
     totalVoters: state.remainingCandidates.length,
@@ -65,6 +67,8 @@ function getPublicState(isAdmin = false) {
     results: state.results,
     electionComplete: state.electionComplete,
     lastWinner: state.lastWinner,
+    isTiebreaker: state.isTiebreaker,
+    tiedCandidates: state.tiedCandidates,
     allAttendees: ALL_ATTENDEES,
   };
   if (isAdmin) {
@@ -75,8 +79,12 @@ function getPublicState(isAdmin = false) {
 
 function tallyVotes() {
   const tally = state.votes;
-  if (Object.keys(tally).length === 0) return null;
-  return Object.keys(tally).reduce((a, b) => (tally[a] >= tally[b] ? a : b));
+  const pool = state.isTiebreaker ? state.tiedCandidates : state.remainingCandidates;
+  if (Object.keys(tally).length === 0) return { winner: null, tied: [] };
+  const maxVotes = Math.max(...pool.map(c => tally[c] || 0));
+  if (maxVotes === 0) return { winner: null, tied: [] };
+  const tied = pool.filter(c => (tally[c] || 0) === maxVotes);
+  return tied.length > 1 ? { winner: null, tied } : { winner: tied[0], tied: [] };
 }
 
 app.use(express.static(path.join(__dirname, 'public')));
@@ -93,7 +101,7 @@ io.on('connection', (socket) => {
     state.votingOpen = true;
     state.votes = {};
     state.votersWhoVoted = [];
-    state.lastWinner = null;
+    if (!state.isTiebreaker) state.lastWinner = null;
     io.emit('stateUpdate', getPublicState(false));
     socket.emit('adminState', getPublicState(true));
   });
@@ -106,8 +114,16 @@ io.on('connection', (socket) => {
     if (!state.votingOpen) return;
     state.votingOpen = false;
 
-    const winner = tallyVotes();
-    if (winner) {
+    const { winner, tied } = tallyVotes();
+    if (tied.length > 1) {
+      state.isTiebreaker = true;
+      state.tiedCandidates = tied;
+      state.lastWinner = null;
+      state.votes = {};
+      state.votersWhoVoted = [];
+    } else if (winner) {
+      state.isTiebreaker = false;
+      state.tiedCandidates = [];
       state.lastWinner = winner;
       state.results.push({
         position: POSITIONS[state.currentPositionIndex],
@@ -131,6 +147,8 @@ io.on('connection', (socket) => {
       return;
     }
     if (state.electionComplete) return;
+    state.isTiebreaker = false;
+    state.tiedCandidates = [];
     state.votingOpen = true;
     state.votes = {};
     state.votersWhoVoted = [];
@@ -165,7 +183,8 @@ io.on('connection', (socket) => {
       socket.emit('voteError', 'Unrecognized voter identity.');
       return;
     }
-    if (!state.remainingCandidates.includes(candidate)) {
+    const validCandidates = state.isTiebreaker ? state.tiedCandidates : state.remainingCandidates;
+    if (!validCandidates.includes(candidate)) {
       socket.emit('voteError', 'Invalid candidate.');
       return;
     }
