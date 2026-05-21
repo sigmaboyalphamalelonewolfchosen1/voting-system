@@ -38,8 +38,17 @@ confirmIdentityBtn.addEventListener('click', () => {
   socket.emit('claimIdentity', voterSelect.value);
 });
 
+socket.on('connect', () => {
+  const saved = localStorage.getItem('voterName');
+  if (saved) socket.emit('claimIdentity', saved);
+});
+
 socket.on('identityClaimed', (name) => {
   myName = name;
+  localStorage.setItem('voterName', name);
+  if (currentState && currentState.votersWhoVoted && currentState.votersWhoVoted.includes(name)) {
+    hasVotedThisRound = true;
+  }
   identityError.classList.add('hidden');
   identityConfirmed.textContent = `Logged in as: ${myName}`;
   identityConfirmed.classList.remove('hidden');
@@ -49,6 +58,7 @@ socket.on('identityClaimed', (name) => {
 });
 
 socket.on('identityError', (msg) => {
+  localStorage.removeItem('voterName');
   identityError.textContent = msg;
   identityError.classList.remove('hidden');
   confirmIdentityBtn.disabled = false;
