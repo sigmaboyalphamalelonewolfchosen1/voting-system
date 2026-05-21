@@ -22,8 +22,9 @@ const btnReset        = document.getElementById('btn-reset');
 const liveTally       = document.getElementById('live-tally');
 const tallyBody       = document.getElementById('tally-body');
 
-const resultsList    = document.getElementById('results-list');
-const completeBanner = document.getElementById('complete-banner');
+const resultsList     = document.getElementById('results-list');
+const completeBanner  = document.getElementById('complete-banner');
+const participantsList = document.getElementById('participants-list');
 
 /* ── Login ── */
 adminLoginBtn.addEventListener('click', () => {
@@ -86,12 +87,17 @@ socket.on('error', () => {
 });
 
 /* ── Renderers ── */
+socket.on('voterStatusUpdate', (statusList) => {
+  renderVoterStatus(statusList);
+});
+
 function renderDashboard(state) {
   renderPositionBanner(state);
   refreshControls(state);
   renderResults(state);
   if (state.votes) renderTally(state.votes, state.candidates);
   if (state.electionComplete) completeBanner.classList.remove('hidden');
+  if (state.voterStatus) renderVoterStatus(state.voterStatus);
 }
 
 function renderPositionBanner(state) {
@@ -174,6 +180,18 @@ function renderTally(votes, candidates) {
     if (count === maxVotes && count > 0) tr.classList.add('tally-leading');
     tr.innerHTML = `<td>${name}</td><td>${count}</td>`;
     tallyBody.appendChild(tr);
+  });
+}
+
+function renderVoterStatus(statusList) {
+  participantsList.innerHTML = '';
+  statusList.forEach(({ name, active }) => {
+    const item = document.createElement('div');
+    item.className = 'participant-item';
+    item.innerHTML = `
+      <span class="participant-name">${name}</span>
+      <span class="participant-badge ${active ? 'badge-active' : 'badge-inactive'}">${active ? 'Active' : 'Inactive'}</span>`;
+    participantsList.appendChild(item);
   });
 }
 

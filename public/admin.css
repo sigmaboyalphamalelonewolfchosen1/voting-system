@@ -63,6 +63,27 @@
   margin-bottom: 20px;
 }
 
+/* ── Participants list ── */
+.participant-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: .88rem;
+}
+.participant-item:last-child { border-bottom: none; }
+.participant-name { color: var(--text); }
+.participant-badge {
+  font-size: .72rem;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: 12px;
+  white-space: nowrap;
+}
+.badge-active   { background: #dcfce7; color: #15803d; }
+.badge-inactive { background: #f1f5f9; color: #94a3b8; }
+
 /* ── Danger zone card ── */
 .danger-zone {
   border-color: #fecaca;

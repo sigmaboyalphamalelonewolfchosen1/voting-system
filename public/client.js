@@ -23,22 +23,35 @@ const winnerPosition = document.getElementById('winner-position');
 const winnerName     = document.getElementById('winner-name');
 const completeBanner = document.getElementById('complete-banner');
 
-const resultsList = document.getElementById('results-list');
+const resultsList    = document.getElementById('results-list');
+const identityError  = document.getElementById('identity-error');
 
 /* ── Identity ── */
 voterSelect.addEventListener('change', () => {
   confirmIdentityBtn.disabled = voterSelect.value === '';
+  identityError.classList.add('hidden');
 });
 
 confirmIdentityBtn.addEventListener('click', () => {
   if (!voterSelect.value) return;
-  myName = voterSelect.value;
+  confirmIdentityBtn.disabled = true;
+  socket.emit('claimIdentity', voterSelect.value);
+});
+
+socket.on('identityClaimed', (name) => {
+  myName = name;
+  identityError.classList.add('hidden');
   identityConfirmed.textContent = `Logged in as: ${myName}`;
   identityConfirmed.classList.remove('hidden');
-  confirmIdentityBtn.disabled = true;
   voterSelect.disabled = true;
   identityPanel.querySelector('h2').textContent = 'Identity Confirmed';
   renderVoterUI(currentState);
+});
+
+socket.on('identityError', (msg) => {
+  identityError.textContent = msg;
+  identityError.classList.remove('hidden');
+  confirmIdentityBtn.disabled = false;
 });
 
 /* ── Socket events ── */

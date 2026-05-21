@@ -54,6 +54,12 @@ function createFreshState() {
 
 let state = createFreshState();
 
+const claimedNames = new Map(); // voterName → socketId
+
+function getVoterStatus() {
+  return ALL_ATTENDEES.map(name => ({ name, active: claimedNames.has(name) }));
+}
+
 function getPublicState(isAdmin = false) {
   const base = {
     currentPosition: POSITIONS[state.currentPositionIndex] || null,
@@ -73,6 +79,7 @@ function getPublicState(isAdmin = false) {
   };
   if (isAdmin) {
     base.votes = state.votes;
+    base.voterStatus = getVoterStatus();
   }
   return base;
 }
@@ -91,6 +98,33 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 io.on('connection', (socket) => {
   socket.emit('stateUpdate', getPublicState(false));
+
+  socket.on('claimIdentity', (name) => {
+    if (!ALL_ATTENDEES.includes(name)) {
+      socket.emit('identityError', 'Unrecognized name.');
+      return;
+    }
+    if (claimedNames.has(name)) {
+      socket.emit('identityError', 'Someone is already using this name.');
+      return;
+    }
+    for (const [n, sid] of claimedNames.entries()) {
+      if (sid === socket.id) claimedNames.delete(n);
+    }
+    claimedNames.set(name, socket.id);
+    socket.emit('identityClaimed', name);
+    io.emit('voterStatusUpdate', getVoterStatus());
+  });
+
+  socket.on('disconnect', () => {
+    for (const [name, sid] of claimedNames.entries()) {
+      if (sid === socket.id) {
+        claimedNames.delete(name);
+        break;
+      }
+    }
+    io.emit('voterStatusUpdate', getVoterStatus());
+  });
 
   socket.on('admin:openVoting', (password) => {
     if (password !== ADMIN_PASSWORD) {
