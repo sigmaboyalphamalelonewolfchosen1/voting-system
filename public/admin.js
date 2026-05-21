@@ -22,9 +22,10 @@ const btnReset        = document.getElementById('btn-reset');
 const liveTally       = document.getElementById('live-tally');
 const tallyBody       = document.getElementById('tally-body');
 
-const resultsList     = document.getElementById('results-list');
-const completeBanner  = document.getElementById('complete-banner');
+const resultsList      = document.getElementById('results-list');
+const completeBanner   = document.getElementById('complete-banner');
 const participantsList = document.getElementById('participants-list');
+const btnDownload      = document.getElementById('btn-download');
 
 /* ── Login ── */
 adminLoginBtn.addEventListener('click', () => {
@@ -60,6 +61,8 @@ btnReset.addEventListener('click', () => {
     socket.emit('admin:reset', adminPassword);
   }
 });
+
+btnDownload.addEventListener('click', downloadResults);
 
 /* ── Socket events ── */
 socket.on('adminState', (state) => {
@@ -193,6 +196,40 @@ function renderVoterStatus(statusList) {
       <span class="participant-badge ${active ? 'badge-active' : 'badge-inactive'}">${active ? 'Active' : 'Inactive'}</span>`;
     participantsList.appendChild(item);
   });
+}
+
+function downloadResults() {
+  const results = currentState && currentState.results;
+  if (!results || results.length === 0) {
+    alert('No results to download yet.');
+    return;
+  }
+  const now = new Date();
+  const timestamp = now.toLocaleString('en-US', {
+    year: 'numeric', month: 'long', day: 'numeric',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+  });
+  const dateSlug = now.toISOString().slice(0, 10);
+
+  const rows = [
+    ['Employees Union Election 2026 - Results'],
+    [`Downloaded: ${timestamp}`],
+    [],
+    ['Position', 'Winner', 'Total Votes'],
+    ...results.map(r => {
+      const total = r.votes ? Object.values(r.votes).reduce((a, b) => a + b, 0) : '';
+      return [r.position, r.winner, total];
+    }),
+  ];
+
+  const csv = rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\r\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `election-results-${dateSlug}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 function showStatus(msg, type = 'info') {
